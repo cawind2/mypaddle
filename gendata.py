@@ -19,15 +19,19 @@ def save_result(points1, points2):
     plt.savefig('./image/testdata.png')
 
 
-x= np.random.uniform(0,50,600)
-y=1.85*x + np.random.normal(0,3,600)
+x= np.random.uniform(0,50,1000)
+x1= np.random.uniform(400,700,1000)
+x2= np.random.uniform(-20,20,1000)
+x3= np.random.uniform(0.1,6.8,1000)
+y=1.85*x + 1.7*x1 + 0.5*x2 + 1.3*x3+ np.random.normal(-3,5,1000)
 
-c=np.vstack((x,y)) #合并
-c=c.swapaxes(1,0) #交换
+c=np.vstack((x,x1,x2,x3,y)) #合并
+c=c.swapaxes(1,0) #交换行列
 np.savetxt('./test.csv', c, delimiter=' ')
 
 # save_result(c[0], infer_label)
 
+# 多维的不适用
 plt.scatter(x,y)
 plt.xlabel('x')
 plt.ylabel('y')

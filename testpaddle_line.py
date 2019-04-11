@@ -16,6 +16,8 @@ MY_TRAIN_DATA = None
 MY_TEST_DATA = None
 FILENAME = './test.csv'
 RESULTFILE = './image/prediction.png'
+feature_num = 5
+infer_batch_size = 30
 
 
 def load_data(filename, feature_num=2, ratio=0.8):
@@ -36,8 +38,8 @@ def load_data(filename, feature_num=2, ratio=0.8):
 
 def train():
 
-    global MY_TRAIN_DATA, FILENAME
-    load_data(FILENAME)
+    global MY_TRAIN_DATA, FILENAME, feature_num
+    load_data(FILENAME,feature_num)
 
     def reader():
         for d in MY_TRAIN_DATA:
@@ -48,8 +50,8 @@ def train():
 
 def test():
 
-    global MY_TEST_DATA, FILENAME
-    load_data(FILENAME)
+    global MY_TEST_DATA, FILENAME,feature_num
+    load_data(FILENAME,feature_num)
 
     def reader():
         for d in MY_TEST_DATA:
@@ -98,11 +100,12 @@ def main():
     # 保存训练参数
     params_dirname = "fit_a_line.inference.model"
 
-    # 生成的模拟数据是y=a*x+b
-    # x是第一列，输入数据
-    # y是第二列，输出数据，预测数据
-    feature_names = ['x', 'y']
+    # 生成的模拟数据是y=a*x+a1*x1+a2*x2+a3*x3+b
+    # x,x1,x2,x3是第1-4列，输入数据
+    # y是第5列，输出数据，预测数据
+    feature_names = ['x', 'x1', 'x2', 'x3', 'y']
 
+    global feature_num
     feature_num = len(feature_names)
 
     #filename = './test.csv'
@@ -127,7 +130,7 @@ def main():
 
         # feature vector of length 1
         # 定义输入的形状和数据类型
-        x = fluid.layers.data(name='x', shape=[1], dtype='float32')
+        x = fluid.layers.data(name='x', shape=[4], dtype='float32')
         y = fluid.layers.data(name='y', shape=[1], dtype='float32') # 定义输出的形状和数据类型
         y_predict = fluid.layers.fc(input=x, size=1, act=None) # 连接输入和输出的全连接层
 
@@ -146,7 +149,7 @@ def main():
     #该api不会删除任何操作符,请在backward和optimization之前使用
         test_program = main_program.clone(for_test=True)
 
-        num_epochs = 700
+        num_epochs = 1000
 
         # main train loop. 训练
         # train_test
@@ -207,10 +210,10 @@ def main():
     with fluid.scope_guard(inference_scope):
         [inference_program, feed_target_names, fetch_targets
          ] = fluid.io.load_inference_model(params_dirname, infer_exe)
-        batch_size = 10
+        infer_batch_size = 30
 
         infer_reader = paddle.batch(
-            test(), batch_size=batch_size)
+            test(), batch_size=infer_batch_size)
 
         infer_data = next(infer_reader())
         infer_feat = np.array(

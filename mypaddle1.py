@@ -11,6 +11,9 @@ import paddle
 import paddle.fluid as fluid
 
 
+
+
+
 # For training test cost
 def train_test(executor, program, reader, feeder, fetch_list):
     accumulated = 1 * [0]
